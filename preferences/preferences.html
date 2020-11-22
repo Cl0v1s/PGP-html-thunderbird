@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="./preferences.css" />
+    <script defer="" src="./preferences.js" type="application/javascript"></script>
+  </head>
+
+  <body>
+    <div>
+        <h3>
+            Registered keys
+        </h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>PGP key</th>
+                    <th>Passphrase</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+    
+            </tbody>
+        </table>
+    </div>
+    <form>
+        <h3>
+            Register new key
+        </h3>
+        <div>
+            <label>Email</label>
+            <input name="email" type="email" />
+        </div>
+        <div>
+            <label>PGP Key</label>
+            <textarea rows="4" name="pgp"></textarea>
+        </div>
+        <div>
+            <label>Passphrase</label>
+            <input name="phrase" type="text" />
+        </div>
+        <button type="submit">Register the new key</button>
+    </form>
+  </body>
+
+</html>
