@@ -3,7 +3,10 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'decrypted': {
             const content = document.body.querySelector('.moz-text-html');
             if(content == null) return; // if user isnt on html mode, we stop here
-            content.innerHTML = request.content;
+            setTimeout(() => {
+                content.innerHTML = request.content;
+                console.log('Rendered');
+            }, 1000);
             break;
         }
     }
