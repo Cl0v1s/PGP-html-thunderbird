@@ -6,7 +6,7 @@ const preferences = {
     load: async () => {
         try {
             const data = await browser.storage.sync.get("keys");
-            preferences.keys = data.keys;
+            if(data.keys != null) preferences.keys = data.keys;
         } catch (e) {
             console.error(e);
         } finally {
