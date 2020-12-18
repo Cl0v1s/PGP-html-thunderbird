@@ -10,3 +10,5 @@ This little extension allows to correctly render pgp-encrypted html emails.
 When the extension is installed in Thunderbird, you can manage its options from the addon management panel. 
 There, you can add your private pgp keys and their corresponding passphrase. Obviously, all these data are only stored locally and never sent anywhere. 
 These keys will be used to decrypt html emails on-the-fly when you open them in thunderbird GUI, and then render this decrypted html in the window. 
+
+After providing your settings, you may need to restart thunderbird for the changes to take effect.
