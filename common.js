@@ -2,35 +2,57 @@
 var tab = null;
 
 const common = {
-    keyring: [],
+    worker: null,
 
-    load: async () => {
-        try {
-            const data = await browser.storage.sync.get("keys");
-            const promises = data.keys.map(async (key) => {
-                if(key.pgp == null) return null;
-                const { keys: [privateKey] } = await openpgp.key.readArmored(key.pgp);
-                await privateKey.decrypt(key.phrase);
-                return privateKey;
-            });
-            const privatekeys = await Promise.all(promises);
-            common.keyring = privatekeys.filter(p => p != null);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            console.log(common.keyring.length + ' keys loaded.');
-        }
+    initWorker: () => {
+        return new Promise(async (resolve, reject) => {
+            common.worker = new Worker(browser.runtime.getURL('decrypter.js'));
+            common.worker.onmessage = function(e) {
+                const payload = e.data;
+                switch(payload.type) {
+                    case 'initialized': {
+                        resolve();
+                        break;
+                    }
+                }
+            };
+            common.worker.postMessage({
+                type: 'initialize',
+                content: await browser.storage.sync.get("keys")
+            }); 
+        })
     },
 
     decryptParts: async (parts) => {
-        const promises = parts.map(async (part) => {
-            const { data: content } = await openpgp.decrypt({
-                message: await openpgp.message.readArmored(part.body),         
-                privateKeys: common.keyring                                    
-            });
-            return content;
+        const backup = common.worker.onmessage;
+        const promises = new Promise((resolve, reject) => {
+            const results = [];
+            common.worker.onmessage = function(e) {
+                const payload = e.data;
+                switch(payload.type) {
+                    case 'decrypted': {
+                        results.push(payload.content);
+                        if(results.length === parts.length) {
+                            resolve(results);
+                        }
+                        break;
+                    };
+                    default: {
+                        backup(e);
+                        break;
+                    }
+                }
+            };
         });
-        return (await Promise.all(promises)).filter(p => p != null);
+        parts.forEach((part) => {
+            common.worker.postMessage({
+                type: 'decrypt',
+                content: part
+            }); 
+        });
+        const content = (await promises).filter(p => p != null);
+        common.worker.onmessage = backup;
+        return content;
     },
 
     decryptBody: async (message) => {
@@ -102,7 +124,11 @@ const common = {
 
 };
 
-common.load();
+(async () => {
+    await common.initWorker();
+    console.log('PGP ready')
+})();
+
 
 browser.messageDisplay.onMessageDisplayed.addListener(async (tab, message) => {
     const decrypted = await common.decryptBody(message);
@@ -128,6 +154,7 @@ browser.runtime.onMessage.addListener(async function(request, sender, sendRespon
 browser.messageDisplayAction.onClicked.addListener(async (tab) => {
     const message = await browser.messageDisplay.getDisplayedMessage(tab.id);
     const attachments = await common.decryptAttachment(message);
+    if(attachments == null) return;
     attachments.forEach((a) => {
         const dataa = new Blob([a.data], {type : a.contentType});
         const url = URL.createObjectURL(dataa);
