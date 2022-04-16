@@ -1,3 +1,11 @@
+# Disclaimer
+
+If you encounter this problem, it's probably because your encryption system is not compliant with OpenPGP MIME Format.
+Please refer to https://www.rfc-editor.org/rfc/rfc3156 to make your system compatible. 
+
+Here is a example of a working POSTFIX compatible encryption system: https://github.com/Cl0v1s/gpg-filter
+
+
 # About 
 
 I use server-side encryption on my own mail server to encrypt all incoming emails. 
